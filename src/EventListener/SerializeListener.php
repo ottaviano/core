@@ -20,7 +20,6 @@ use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use Fig\Link\GenericLinkProvider;
 use Fig\Link\Link;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -49,7 +48,7 @@ final class SerializeListener
         $controllerResult = $event->getControllerResult();
         $request = $event->getRequest();
 
-        if ($controllerResult instanceof Response) {
+        if (!$request->attributes->getBoolean('_api_respond', true)) {
             return;
         }
 
@@ -107,10 +106,6 @@ final class SerializeListener
      */
     private function serializeRawData(GetResponseForControllerResultEvent $event, Request $request, $controllerResult)
     {
-        if (!$request->attributes->get('_api_respond')) {
-            return;
-        }
-
         if (\is_object($controllerResult)) {
             $event->setControllerResult($this->serializer->serialize($controllerResult, $request->getRequestFormat(), $request->attributes->get('_api_normalization_context', [])));
 
